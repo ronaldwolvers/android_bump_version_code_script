@@ -1,0 +1,28 @@
+#!/bin/bash
+
+regex="versionCode[[:space:]]([0-9]+)"
+
+input="app/build.gradle"
+
+while read -r line
+do
+  if [[ $line =~ $regex ]]; then
+    versionCode=${BASH_REMATCH[1]}
+    echo "versionCode: $versionCode"
+  fi
+done < $input
+
+newVersionCode="$(($versionCode+1))"
+echo "newVersionCode: $newVersionCode"
+
+search="versionCode $versionCode"
+replace="versionCode $newVersionCode"
+
+sed -i'' -e "s/$search/$replace/" $input
+
+git tag $newVersionCode
+git push -u origin $newVersionCode
+
+git add .
+git commit -am "Bumped \`versionCode\` to \`$newVersionCode\`"
+git push -u origin main
